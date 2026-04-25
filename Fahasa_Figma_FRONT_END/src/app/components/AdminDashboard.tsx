@@ -16,7 +16,8 @@ import {
   Trash2,
   Eye,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react';
 import api from '../utils/api';
 import {
@@ -43,7 +44,10 @@ const Pagination = ({ page, totalPages, onPageChange }: { page: number; totalPag
   );
 };
 
+type AccessState = 'checking' | 'allowed' | 'denied';
+
 export function AdminDashboard({ onBackToHome }: { onBackToHome?: () => void }) {
+  const [accessState, setAccessState] = useState<AccessState>('checking');
   const [activeMenu, setActiveMenu] = useState<'dashboard' | 'products' | 'orders' | 'customers'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -138,24 +142,53 @@ export function AdminDashboard({ onBackToHome }: { onBackToHome?: () => void }) 
   };
 
   useEffect(() => {
-    fetchDashboard();
-  }, [revenueRange]);
-
-  useEffect(() => {
-    if (activeMenu === 'products') fetchProducts();
-  }, [activeMenu, productsPage, productsSearch]);
-
-  useEffect(() => {
-    if (activeMenu === 'orders') fetchOrders();
-  }, [activeMenu, ordersPage, ordersSearch]);
-
-  useEffect(() => {
-    if (activeMenu === 'customers') fetchCustomers();
-  }, [activeMenu, customersPage, customersSearch]);
-
-  useEffect(() => {
-    fetchCategories();
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get('/auth/me');
+        if (cancelled) return;
+        if (res.data?.role === 'admin') {
+          setAccessState('allowed');
+        } else {
+          setAccessState('denied');
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setAccessState('denied');
+          setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
+    fetchDashboard();
+  }, [revenueRange, accessState]);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
+    if (activeMenu === 'products') fetchProducts();
+  }, [activeMenu, productsPage, productsSearch, accessState]);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
+    if (activeMenu === 'orders') fetchOrders();
+  }, [activeMenu, ordersPage, ordersSearch, accessState]);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
+    if (activeMenu === 'customers') fetchCustomers();
+  }, [activeMenu, customersPage, customersSearch, accessState]);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
+    fetchCategories();
+  }, [accessState]);
 
   const formatCurrency = (value: number) => `${value?.toLocaleString('vi-VN') || 0}₫`;
   const formatDate = (value: string) => value ? new Date(value).toLocaleDateString('vi-VN') : '-';
@@ -263,6 +296,45 @@ export function AdminDashboard({ onBackToHome }: { onBackToHome?: () => void }) 
     { id: 'orders', icon: ShoppingCart, label: 'Quản lý Đơn hàng' },
     { id: 'customers', icon: Users, label: 'Quản lý Khách hàng' },
   ];
+
+  if (accessState === 'checking') {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
+        <Loader2 className="animate-spin text-[#CA2128] mb-4" size={48} />
+        <p className="text-gray-600">Đang kiểm tra quyền truy cập…</p>
+      </div>
+    );
+  }
+
+  if (accessState === 'denied') {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+          <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield size={32} />
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Không có quyền quản trị</h1>
+          <p className="text-gray-600 text-sm mb-4">
+            Các API admin chỉ dành cho tài khoản có vai trò <strong>admin</strong> trên server. Tài khoản đăng ký thường là <strong>khách hàng</strong>, nên server trả lỗi 403 (Forbidden).
+          </p>
+          <p className="text-sm text-gray-700 mb-6 text-left bg-gray-50 rounded-lg p-3">
+            Sau khi chạy seed backend, đăng xuất và đăng nhập bằng tài khoản mặc định:
+            <br />
+            <code className="text-[#CA2128]">admin@fahasa.com</code> / <code className="text-[#CA2128]">Admin@123</code>
+          </p>
+          {onBackToHome && (
+            <button
+              type="button"
+              onClick={onBackToHome}
+              className="w-full py-3 rounded-lg bg-[#CA2128] text-white font-medium hover:opacity-95"
+            >
+              ← Quay về trang chủ
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans text-sm">

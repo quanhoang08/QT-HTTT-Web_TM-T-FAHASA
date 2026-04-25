@@ -17,12 +17,14 @@ interface HeaderProps {
   onCategoryClick?: (categoryName: string) => void;
   onProductClick?: (product: Product) => void;
   isLoggedIn?: boolean;
+  /** `true` khi user đã đăng nhập với role admin (đồng bộ từ /auth/me) */
+  isAdmin?: boolean;
   userName?: string;
   cartCount?: number;
   allProducts?: Product[];
 }
 
-export function Header({ onLoginClick, onCartClick, onAdminClick, onCategoryClick, onProductClick, isLoggedIn, userName, cartCount = 0, allProducts = [] }: HeaderProps) {
+export function Header({ onLoginClick, onCartClick, onAdminClick, onCategoryClick, onProductClick, isLoggedIn, isAdmin, userName, cartCount = 0, allProducts = [] }: HeaderProps) {
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,7 +157,9 @@ export function Header({ onLoginClick, onCartClick, onAdminClick, onCategoryClic
                       <Shield size={20} className="text-[#CA2128]" />
                       <div>
                         <div className="text-sm text-gray-800">Admin</div>
-                        <div className="text-xs text-gray-500">Quản trị viên</div>
+                        <div className="text-xs text-gray-500">
+                          {isAdmin ? "Quản trị viên" : isLoggedIn ? "Cần tài khoản admin" : "Đăng nhập admin để quản lý"}
+                        </div>
                       </div>
                     </button>
                   </div>

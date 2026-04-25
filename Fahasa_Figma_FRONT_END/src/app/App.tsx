@@ -33,6 +33,15 @@ export default function App() {
   const [cartCount, setCartCount] = React.useState(0);
 
   const [userName, setUserName] = React.useState('');
+  const [userRole, setUserRole] = React.useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("fahasa_user");
+      if (!raw) return null;
+      return JSON.parse(raw).role ?? null;
+    } catch {
+      return null;
+    }
+  });
   const [featuredBooks, setFeaturedBooks] = React.useState<any[]>([]);
   const [bestsellers, setBestsellers] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<string[]>([]);
@@ -83,15 +92,20 @@ export default function App() {
           const meRes = await api.get("/auth/me");
           localStorage.setItem("fahasa_user", JSON.stringify(meRes.data));
           setUserName(meRes.data.name || "");
+          setUserRole(meRes.data.role || null);
         } catch {
           const userStr = localStorage.getItem("fahasa_user");
           if (userStr) {
             try {
               const user = JSON.parse(userStr);
               setUserName(user.name || "");
+              setUserRole(user.role ?? null);
             } catch {
               setUserName("");
+              setUserRole(null);
             }
+          } else {
+            setUserRole(null);
           }
         }
         await refreshCartCount();
@@ -132,6 +146,7 @@ export default function App() {
           setShowDashboard(false);
           setIsLoggedIn(false);
           setUserName('');
+          setUserRole(null);
           setCartCount(0);
         }}
       />
@@ -213,8 +228,10 @@ export default function App() {
             try {
               const user = JSON.parse(userStr);
               setUserName(user.name || "");
+              setUserRole(user.role ?? null);
             } catch {
               setUserName("");
+              setUserRole(null);
             }
           }
           await refreshCartCount();
@@ -228,8 +245,10 @@ export default function App() {
             try {
               const user = JSON.parse(userStr);
               setUserName(user.name || "");
+              setUserRole(user.role ?? null);
             } catch {
               setUserName("");
+              setUserRole(null);
             }
           }
           await refreshCartCount();
@@ -249,9 +268,17 @@ export default function App() {
             setShowLogin(true);
           }
         }}
-        onAdminClick={() => setShowAdminDashboard(true)}
+        onAdminClick={() => {
+          if (!localStorage.getItem("fahasa_token")) {
+            window.alert("Vui lòng đăng nhập. Để vào trang quản trị, dùng tài khoản admin (ví dụ sau khi chạy seed: admin@fahasa.com / Admin@123).");
+            setShowLogin(true);
+            return;
+          }
+          setShowAdminDashboard(true);
+        }}
         onCartClick={() => setShowCart(true)}
         isLoggedIn={isLoggedIn}
+        isAdmin={userRole === "admin"}
         userName={userName}
         cartCount={cartCount}
         allProducts={allProductsForSearch}

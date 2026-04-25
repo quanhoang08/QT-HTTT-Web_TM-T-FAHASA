@@ -29,6 +29,12 @@ After startup:
 - Backend: http://localhost:8080
 - Health check: http://localhost:8080/api/health
 
-## Demo admin account (seeded)
-- Email: `admin@fahasa.com`
-- Password: `Admin@123`
+## Tài khoản admin mẫu (sau khi chạy seed)
+
+Chạy seed: `npm run seed` (trong thư mục `backend`, cần MongoDB và file `.env` hợp lệ).
+
+| Email | Mật khẩu   |
+|-------|------------|
+| `admin@fahasa.com` | `Admin@123` |
+
+**Lưu ý:** toàn bộ `GET/POST/PUT/DELETE` dưới `/api/admin/*` yêu cầu JWT hợp lệ **và** `role: "admin"`. Tài khoản khách (`customer`) sẽ nhận 403. Hướng dẫn thao tác trên giao diện xem [README ở thư mục gốc dự án](../README.md#hướng-dẫn-admin).
