@@ -1,0 +1,119 @@
+# ===================================================
+# FAHASA - .gitignore
+# ===================================================
+
+# -----------------------------------------------
+# 🔐 BIẾN MÔI TRƯỜNG & BÍ MẬT - KHÔNG BAO GIỜ COMMIT
+# -----------------------------------------------
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+*.env
+
+# -----------------------------------------------
+# 📦 NODE MODULES
+# -----------------------------------------------
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# -----------------------------------------------
+# 🏗️ BUILD OUTPUT
+# -----------------------------------------------
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# -----------------------------------------------
+# 🗄️ DATABASE & LOGS
+# -----------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# MongoDB local data
+data/
+mongodb_data/
+
+# -----------------------------------------------
+# 🧪 TESTING & COVERAGE
+# -----------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+
+# -----------------------------------------------
+# ⚙️ IDE & EDITOR
+# -----------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------
+# 🐳 DOCKER - (giữ lại Dockerfile, bỏ override cục bộ)
+# -----------------------------------------------
+docker-compose.override.yml
+docker-compose.local.yml
+
+# -----------------------------------------------
+# 📁 FILE TẠM & HỆ THỐNG
+# -----------------------------------------------
+*.tmp
+*.temp
+*.cache
+.cache/
+.turbo/
+.eslintcache
+.stylelintcache
+
+# -----------------------------------------------
+# 🔧 VITE / REACT / TYPESCRIPT
+# -----------------------------------------------
+*.tsbuildinfo
+vite.config.ts.timestamp-*
+
+# -----------------------------------------------
+# 📋 FILE NÉN & TÀI LIỆU LỚN (nên dùng Git LFS)
+# -----------------------------------------------
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+FAHASA.zip
+FAHASA.docx
+FAHASA_docx_extracted/
+doc_text.txt
+
+# -----------------------------------------------
+# 🔑 CERTIFICATES & KEYS
+# -----------------------------------------------
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# -----------------------------------------------
+# PNPM
+# -----------------------------------------------
+.pnpm-store/

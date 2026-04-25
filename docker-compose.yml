@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: fahasa-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    # Kiểm tra MongoDB thực sự sẵn sàng trước khi backend kết nối
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: fahasa-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        # Chỉ khởi động khi MongoDB đã healthy → seed data sẽ thành công
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./Fahasa_Figma_FRONT_END
+    container_name: fahasa-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Fahasa_Figma_FRONT_END:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+
