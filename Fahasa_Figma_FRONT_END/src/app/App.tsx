@@ -177,6 +177,14 @@ export default function App() {
           setShowCheckout(false);
           setShowCart(true);
         }}
+        onContinueShopping={() => {
+          setShowCheckout(false);
+          setCartCount(0);
+        }}
+        onViewOrders={() => {
+          setShowCheckout(false);
+          setShowDashboard(true);
+        }}
       />
     );
   }

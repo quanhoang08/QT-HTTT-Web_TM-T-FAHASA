@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Wallet, CheckCircle2, Loader2 } from 'lucide-react';
 import api from '../utils/api';
+import { OrderSuccess } from './OrderSuccess';
 
 interface CheckoutProps {
   onBackToCart?: () => void;
+  onContinueShopping?: () => void;
+  onViewOrders?: () => void;
 }
 
 interface CartItem {
@@ -14,12 +17,14 @@ interface CartItem {
   quantity: number;
 }
 
-export function Checkout({ onBackToCart }: CheckoutProps) {
+export function Checkout({ onBackToCart, onContinueShopping, onViewOrders }: CheckoutProps) {
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'momo' | 'vnpay'>('cod');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState('');
   const [shippingInfo, setShippingInfo] = useState({
     fullName: '',
     phone: '',
@@ -54,12 +59,13 @@ export function Checkout({ onBackToCart }: CheckoutProps) {
     }
     try {
       setPlacingOrder(true);
-      await api.post('/orders', {
+      const res = await api.post('/orders', {
         shippingInfo,
         paymentMethod: paymentMethod === 'vnpay' ? 'VNPAY_MOCK' : 'COD',
       });
-      alert('Đặt hàng thành công');
-      onBackToCart?.();
+      const newOrderId = res.data?.order?._id || res.data?._id || 'N/A';
+      setOrderId(newOrderId.toString().slice(-8).toUpperCase());
+      setOrderSuccess(true);
     } catch (error: any) {
       alert(error.response?.data?.message || 'Không thể đặt hàng');
     } finally {
@@ -71,6 +77,21 @@ export function Checkout({ onBackToCart }: CheckoutProps) {
   const shippingFee = deliveryMethod === 'delivery' ? 30000 : 0;
   const discount = 0;
   const total = subtotal + shippingFee - discount;
+
+  // Hiển thị màn hình đặt hàng thành công
+  if (orderSuccess) {
+    return (
+      <OrderSuccess
+        orderNumber={orderId}
+        onContinueShopping={() => {
+          onContinueShopping?.();
+        }}
+        onViewOrderDetails={() => {
+          onViewOrders?.();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
