@@ -1,15 +1,45 @@
 import { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, User, Loader2 } from 'lucide-react';
+import api from '../utils/api';
 
 interface RegisterProps {
   onBackToHome?: () => void;
   onNavigateToLogin?: () => void;
+  onRegisterSuccess?: () => void;
 }
 
-export function Register({ onBackToHome, onNavigateToLogin }: RegisterProps) {
+export function Register({ onBackToHome, onNavigateToLogin, onRegisterSuccess }: RegisterProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const inputs = Array.from(e.currentTarget.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]'));
+    const name = (inputs[0] as HTMLInputElement).value;
+    const email = (inputs[1] as HTMLInputElement).value;
+    const password = (inputs[2] as HTMLInputElement).value;
+    const confirmPassword = (inputs[3] as HTMLInputElement).value;
+
+    if (password !== confirmPassword) {
+      alert('Mật khẩu không khớp!');
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await api.post('/auth/register', { name, email, password });
+      localStorage.setItem('fahasa_token', res.data.token);
+      if (res.data.user) {
+        localStorage.setItem('fahasa_user', JSON.stringify(res.data.user));
+      }
+      onRegisterSuccess?.();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Đăng ký thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-row-reverse">
@@ -70,7 +100,8 @@ export function Register({ onBackToHome, onNavigateToLogin }: RegisterProps) {
               Vui lòng điền thông tin để tạo tài khoản mới
             </p>
 
-            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onRegisterSuccess?.(); }}>
+            <form className="space-y-4" onSubmit={handleRegister}>
+
               {/* Name Input */}
               <div>
                 <label className="block text-sm mb-1 text-gray-700">
@@ -176,8 +207,10 @@ export function Register({ onBackToHome, onNavigateToLogin }: RegisterProps) {
               {/* Register Button */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#d946ef] to-[#a855f7] text-white py-3 rounded-[10px] hover:shadow-lg transition-shadow text-lg font-medium mt-2"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#d946ef] to-[#a855f7] text-white py-3 rounded-[10px] hover:shadow-lg transition-shadow text-lg font-medium mt-2 disabled:opacity-70"
               >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : null}
                 Đăng Ký
               </button>
             </form>

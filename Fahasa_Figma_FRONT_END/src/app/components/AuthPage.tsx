@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, User, LogIn, Loader2 } from 'lucide-react';
-import api, { baseURL } from '../utils/api';
+import api from '../utils/api';
+
+// URL backend gốc (không có /api) để redirect OAuth
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://tmdt-fahasa-backend.onrender.com';
 
 interface AuthPageProps {
   initialView?: 'login' | 'register';
@@ -72,7 +75,8 @@ export function AuthPage({ initialView = 'login', onBackToHome, onLoginSuccess, 
   };
 
   const startSocialLogin = (provider: 'google' | 'facebook') => {
-    window.location.href = `${baseURL}/auth/${provider}`;
+    // Phải redirect thẳng đến backend Render (không qua /api prefix)
+    window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
   };
 
   return (
@@ -161,8 +165,18 @@ export function AuthPage({ initialView = 'login', onBackToHome, onLoginSuccess, 
                         </button>
                       </div>
                     </div>
-                    <button type="submit" className="w-full bg-gradient-to-r from-[#d946ef] to-[#a855f7] text-white py-3 rounded-[10px] hover:shadow-lg transition-shadow text-lg font-medium mt-4">
-                      Đăng Ký
+                    <div>
+                      <label className="block text-sm mb-1 text-gray-700">Xác nhận mật khẩu</label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Lock size={20} /></div>
+                        <input type={registerShowConfirmPassword ? 'text' : 'password'} placeholder="••••••••" className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-[10px] focus:outline-none focus:border-[#d946ef] transition-colors" required />
+                        <button type="button" onClick={() => setRegisterShowConfirmPassword(!registerShowConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                          {registerShowConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                    </div>
+                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#d946ef] to-[#a855f7] text-white py-3 rounded-[10px] hover:shadow-lg transition-shadow text-lg font-medium mt-4 disabled:opacity-70">
+                      {loading ? <Loader2 size={20} className="animate-spin" /> : null} Đăng Ký
                     </button>
                   </form>
                   <p className="text-center mt-6 text-gray-600 text-sm">Đã có tài khoản?{' '}<button onClick={() => setIsLogin(true)} className="text-[#CA2128] hover:underline font-medium">Đăng nhập</button></p>
