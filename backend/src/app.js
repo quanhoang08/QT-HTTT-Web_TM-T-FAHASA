@@ -16,10 +16,29 @@ import { seedData } from "./utils/seed.js";
 
 const app = express();
 
+// Danh sách origin được phép (bao gồm Vercel production + preview deployments)
+const allowedOrigins = [
+  env.frontendUrl,
+  "http://localhost:5173",
+  "http://localhost:5180",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5180",
+];
+
 app.use(
   cors({
-    origin: [env.frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173"],
-    credentials: true
+    origin: (origin, callback) => {
+      // Cho phép requests không có origin (mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      // Cho phép tất cả subdomain của vercel.app (preview deployments)
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+      // Kiểm tra danh sách allowedOrigins
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
